@@ -620,6 +620,16 @@ function init() {
   btnDownloadPdf.addEventListener('click', downloadReceiptPdf);
   btnShareWhatsapp.addEventListener('click', shareViaWhatsApp);
 
+  const btnQuickPreview = document.getElementById('btn-quick-preview');
+  if (btnQuickPreview) {
+    btnQuickPreview.addEventListener('click', () => switchScreen('screen-preview'));
+  }
+
+  const btnEditorGotoPreview = document.getElementById('btn-editor-goto-preview');
+  if (btnEditorGotoPreview) {
+    btnEditorGotoPreview.addEventListener('click', () => switchScreen('screen-preview'));
+  }
+
   // Zoom Buttons
   btnZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.08));
   btnZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.08));

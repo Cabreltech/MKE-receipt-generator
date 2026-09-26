@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#b88b22">
+  <title>MK EVENTS - Reçus & Factures</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Header Topbar -->
+    <header class="app-header no-print">
+      <div class="header-brand">
+        <div class="brand-badge">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <div>
+          <h1 class="brand-title">MK EVENTS</h1>
+          <span class="brand-sub">Générateur de Reçus</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-new" class="btn-circle" title="Nouveau reçu">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="btn-save" class="btn-circle btn-primary" title="Sauvegarder">
+          <i class="fa-solid fa-floppy-disk"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Screens Viewport -->
+    <main class="app-main">
+      
+      <!-- SCREEN 1: EDITOR -->
+      <section id="screen-editor" class="screen-view active">
+        <div class="screen-scrollable">
+          
+          <!-- Document Metadata Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-tag"><i class="fa-solid fa-sliders"></i> Paramètres</span>
+              <span class="receipt-id-badge" id="display-receipt-no">MK-2026-001</span>
+            </div>
+            
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Date d'émission</label>
+                <input type="date" id="input-date">
+              </div>
+              <div class="form-group">
+                <label>Mode de règlement</label>
+                <select id="input-payment-mode">
+                  <option value="Espèces">Espèces</option>
+                  <option value="Orange Money">Orange Money</option>
+                  <option value="MTN MoMo">MTN MoMo</option>
+                  <option value="Virement bancaire">Virement bancaire</option>
+                  <option value="Chèque">Chèque</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Nom du Client / Événement</label>
+              <input type="text" id="input-client-name" placeholder="Ex: M. Jean Dupont / Mariage">
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" id="input-client-phone" placeholder="6XX XXX XXX">
+              </div>
+              <div class="form-group">
+                <label>Lieu / Ville</label>
+                <input type="text" id="input-client-city" placeholder="Ex: Douala - Beedi">
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Items Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-tag"><i class="fa-solid fa-list-check"></i> Articles & Prestations</span>
+              <button id="btn-add-item" class="btn-sm btn-gold">
+                <i class="fa-solid fa-plus"></i> Ajouter ligne
+              </button>
+            </div>
+
+            <div id="items-list" class="items-editor-list">
+              <!-- Dynamically rendered rows -->
+            </div>
+          </div>
+
+          <!-- Totals, Discount & Advance Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-tag"><i class="fa-solid fa-calculator"></i> Règlements & Remises</span>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Remise (FCFA)</label>
+                <input type="number" id="input-discount" min="0" value="0" step="500">
+              </div>
+              <div class="form-group">
+                <label>Acompte versé (FCFA)</label>
+                <input type="number" id="input-advance" min="0" value="0" step="500">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Notes / Conditions particulières</label>
+              <input type="text" id="input-notes" placeholder="Ex: Restitution du matériel sous 24h.">
+            </div>
+          </div>
+
+          <div class="screen-spacer-bottom"></div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: PREVIEW -->
+      <section id="screen-preview" class="screen-view">
+        <div class="preview-toolbar no-print">
+          <div class="preview-status">
+            <span class="badge-dot"></span> Format Officiel A4 (1 Page)
+          </div>
+          <div class="preview-zoom-actions">
+            <button id="btn-zoom-out" class="btn-zoom"><i class="fa-solid fa-minus"></i></button>
+            <span id="zoom-value">70%</span>
+            <button id="btn-zoom-in" class="btn-zoom"><i class="fa-solid fa-plus"></i></button>
+            <button id="btn-zoom-reset" class="btn-zoom"><i class="fa-solid fa-arrows-rotate"></i></button>
+          </div>
+        </div>
+
+        <div class="preview-viewport" id="preview-viewport">
+          <!-- The strictly 1-page A4 print container -->
+          <div class="receipt-sheet" id="receipt-sheet">
+            
+            <!-- HEADER (Official MK Brand Banner) -->
+            <div class="receipt-header">
+              <img src="logo.png" alt="MK EVENTS ET CONSEILS" class="header-banner-img">
+            </div>
+
+            <!-- RECEIPT INFO BAR -->
+            <div class="receipt-info-bar">
+              <div class="info-cell">
+                <span class="info-label">REÇU N° :</span>
+                <span class="info-value info-highlight" id="view-receipt-no">MK-2026-001</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">DATE :</span>
+                <span class="info-value" id="view-receipt-date">22/09/2026</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">CLIENT :</span>
+                <span class="info-value" id="view-client-name">-</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">TÉLÉPHONE :</span>
+                <span class="info-value" id="view-client-phone">-</span>
+              </div>
+            </div>
+
+            <!-- ITEMS TABLE -->
+            <div class="receipt-table-wrapper">
+              <table class="receipt-table" id="receipt-table">
+                <thead>
+                  <tr>
+                    <th class="col-no">NO</th>
+                    <th class="col-produit">PRODUIT</th>
+                    <th class="col-qte">QUANTITÉ</th>
+                    <th class="col-pu">P.UNITAIRE</th>
+                    <th class="col-total">P.TOTALE</th>
+                  </tr>
+                </thead>
+                <tbody id="receipt-table-body">
+                  <!-- Generated dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="receipt-footer">
+              <div class="footer-left">
+                <div class="words-container">
+                  <span class="words-label">Arrêté la présente facture à la somme de :</span>
+                  <div class="words-amount" id="view-words-amount">Zéro Franc CFA</div>
+                </div>
+
+                <div class="notes-container" id="view-notes-container">
+                  <span class="notes-text" id="view-notes"></span>
+                </div>
+
+                <div class="signatures-row">
+                  <div class="signature-box">
+                    <span class="sig-label">Le Client</span>
+                  </div>
+                  <div class="signature-box">
+                    <span class="sig-label">La Direction (MK Events)</span>
+                    <div class="signature-stamp">
+                      <span>MK EVENTS ET CONSEILS</span>
+                      <small>Saker-Beedi Douala</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="footer-right">
+                <div class="summary-table">
+                  <div class="summary-row">
+                    <span>Total Brut</span>
+                    <strong id="view-total-gross">0 FCFA</strong>
+                  </div>
+                  <div class="summary-row" id="view-discount-row">
+                    <span>Remise</span>
+                    <strong id="view-total-discount">0 FCFA</strong>
+                  </div>
+                  <div class="summary-row total-highlight">
+                    <span>NET À PAYER</span>
+                    <strong id="view-total-net">0 FCFA</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Acompte versé</span>
+                    <strong id="view-total-advance">0 FCFA</strong>
+                  </div>
+                  <div class="summary-row balance-highlight">
+                    <span>RESTE À PAYER</span>
+                    <strong id="view-total-balance">0 FCFA</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: HISTORY -->
+      <section id="screen-history" class="screen-view">
+        <div class="screen-scrollable">
+          <div class="history-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="history-search" placeholder="Rechercher par client ou numéro...">
+          </div>
+          <div id="history-list" class="history-cards-list">
+            <!-- Saved receipts rendered here -->
+          </div>
+          <div class="screen-spacer-bottom"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Action Floating Bar -->
+    <div class="bottom-action-bar no-print">
+      <div class="bar-total-display">
+        <span class="bar-total-label">Net à Payer</span>
+        <span class="bar-total-amount" id="bar-total-amount">0 FCFA</span>
+      </div>
+      <div class="bar-buttons">
+        <button id="btn-share-whatsapp" class="btn-action btn-whatsapp" title="Partager PDF via WhatsApp">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </button>
+        <button id="btn-download-pdf" class="btn-action btn-gold-solid" title="Télécharger le reçu PDF (1 page)">
+          <i class="fa-solid fa-file-arrow-down"></i> Reçu PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Mobile Navigation Bar -->
+    <nav class="app-nav-bar no-print">
+      <button class="nav-button active" data-screen="screen-editor">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Éditer</span>
+      </button>
+      <button class="nav-button" data-screen="screen-preview">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Aperçu</span>
+      </button>
+      <button class="nav-button" data-screen="screen-history">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Historique</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast no-print"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

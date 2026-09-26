@@ -1,0 +1,1034 @@
+/* ==========================================================================
+   MK EVENTS ET CONSEILS - MOBILE-FIRST STYLESHEET
+   - No scrollbar UI (hidden scrollbar, fluid touch momentum)
+   - Strict 1-Page A4 PDF layout (210mm x 297mm)
+   - Golden Luxury Theme with Rich Typography
+   ========================================================================== */
+
+:root {
+  --gold-primary: #b88b22;
+  --gold-light: #e4c264;
+  --gold-dark: #8c6412;
+  --gold-gradient: linear-gradient(135deg, #dfb448 0%, #b88b22 50%, #8c6412 100%);
+  --bg-dark: #0f1217;
+  --bg-card: #171c24;
+  --bg-input: #202733;
+  --border-color: #2b3545;
+  --text-main: #f3f4f6;
+  --text-sub: #9ca3af;
+  --whatsapp-green: #25D366;
+  --whatsapp-dark: #1ea952;
+  --danger-color: #ef4444;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Base Reset & Global No-Scrollbar Rule */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbars everywhere while preserving smooth scrolling */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-main);
+  user-select: none;
+}
+
+@media screen {
+  body {
+    background-color: var(--bg-dark);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+}
+
+input, select, textarea {
+  user-select: text;
+  font-family: inherit;
+}
+
+/* App Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  max-width: 520px; /* Mobile first frame */
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+}
+
+@media screen and (min-width: 1024px) {
+  body {
+    background: radial-gradient(circle at center, #1b222d 0%, #090c0f 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .app-container {
+    height: 94vh;
+    border-radius: 28px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Header Topbar */
+.app-header {
+  height: 56px;
+  min-height: 56px;
+  background: rgba(23, 28, 36, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 30;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-badge {
+  width: 32px;
+  height: 32px;
+  background: var(--gold-gradient);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(184, 139, 34, 0.35);
+}
+
+.brand-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-circle.btn-primary {
+  background: var(--gold-primary);
+  color: #0f1217;
+  border-color: var(--gold-primary);
+  font-weight: 700;
+}
+
+.btn-circle:active {
+  transform: scale(0.92);
+}
+
+/* Main Screen Viewport */
+.app-main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+}
+
+.screen-view.active {
+  display: flex;
+}
+
+.screen-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px 120px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.screen-spacer-bottom {
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* Form Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 8px;
+}
+
+.card-tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.receipt-id-badge {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(184, 139, 34, 0.15);
+  color: var(--gold-light);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(184, 139, 34, 0.3);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.form-group input,
+.form-group select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  padding: 9px 11px;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--gold-primary);
+}
+
+/* Items Editor List */
+.items-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-editor-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-editor-row-1 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.item-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold-light);
+  width: 20px;
+  text-align: center;
+}
+
+.item-editor-card input.item-desc {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: #fff;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.btn-remove-item {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  font-size: 13px;
+  transition: color 0.15s;
+}
+
+.btn-remove-item:hover, .btn-remove-item:active {
+  color: var(--danger-color);
+}
+
+.item-editor-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1.3fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.item-editor-row-2 input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: #fff;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  width: 100%;
+}
+
+.item-total-preview {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-light);
+  text-align: right;
+  padding-right: 4px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+
+.btn-gold {
+  background: var(--gold-gradient);
+  color: #0f1217;
+}
+
+.btn-gold:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   SCREEN 2: PREVIEW VIEWPORT & A4 RECEIPT SHEET
+   ========================================================================== */
+.preview-toolbar {
+  height: 42px;
+  min-height: 42px;
+  background: #141921;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  z-index: 10;
+}
+
+.preview-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--gold-primary);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.preview-zoom-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-zoom {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: #cbd5e1;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+#zoom-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+  min-width: 36px;
+  text-align: center;
+}
+
+.preview-viewport {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #080a0c;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px 8px 120px 8px;
+}
+
+/* STRICT 1-PAGE A4 RECEIPT SHEET */
+.receipt-sheet {
+  width: 210mm;
+  height: 297mm;
+  max-height: 297mm;
+  background: #ffffff;
+  color: #000000;
+  box-sizing: border-box;
+  padding: 10mm 12mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  transform-origin: top center;
+  overflow: hidden;
+  page-break-inside: avoid;
+  page-break-after: avoid;
+  break-inside: avoid;
+  position: relative;
+}
+
+/* HEADER WITH OFFICIAL BRAND BANNER */
+.receipt-header {
+  width: 100%;
+  display: block;
+  border-bottom: 2px solid #111;
+  background: #ffffff;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.header-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* RECEIPT INFO BAR */
+.receipt-info-bar {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.6fr 1.2fr;
+  border: 1.5px solid #222;
+  background: #fdfbf7;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  font-size: 9.5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.info-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-label {
+  font-weight: 800;
+  color: #374151;
+  font-size: 8.5px;
+  letter-spacing: 0.4px;
+}
+
+.info-value {
+  font-weight: 700;
+  color: #111827;
+}
+
+.info-value.info-highlight {
+  color: #946808;
+  font-weight: 800;
+}
+
+/* RECEIPT TABLE */
+.receipt-table-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 1.5px solid #222;
+}
+
+.receipt-table th {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: center;
+  padding: 7px 4px;
+  border: 1.2px solid #222;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.col-no { width: 7.5%; }
+.col-produit { width: 44.5%; }
+.col-qte { width: 14%; }
+.col-pu { width: 17%; }
+.col-total { width: 17%; }
+
+.receipt-table td {
+  border: 1.2px solid #222;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #000000;
+  vertical-align: middle;
+  min-height: 28px;
+}
+
+/* Columns 2 (PRODUIT) and 4 (P.UNITAIRE) have full gold fill */
+.receipt-table td.cell-gold {
+  background-color: #ba8d23 !important;
+  color: #000000;
+  font-weight: 700;
+}
+
+.receipt-table td.cell-center { text-align: center; }
+.receipt-table td.cell-right { text-align: right; font-variant-numeric: tabular-nums; }
+.receipt-table td.cell-name { word-break: break-word; }
+
+/* FOOTER SECTION */
+.receipt-footer {
+  display: flex;
+  gap: 16px;
+  padding-top: 10px;
+  border-top: 2px solid #222;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.footer-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.words-container {
+  background: #fdfbf7;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 7px 10px;
+}
+
+.words-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #4b5563;
+  display: block;
+}
+
+.words-amount {
+  font-size: 10px;
+  font-weight: 800;
+  color: #111;
+  font-style: italic;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
+.notes-container {
+  font-size: 8.5px;
+  color: #4b5563;
+  font-style: italic;
+  min-height: 14px;
+  padding-left: 2px;
+}
+
+.signatures-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.signature-box {
+  flex: 1;
+  border-top: 1.5px solid #222;
+  padding-top: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  min-height: 52px;
+  position: relative;
+}
+
+.signature-stamp {
+  margin-top: 6px;
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 8px;
+  border: 1.5px dashed #ba8d23;
+  color: #ba8d23;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transform: rotate(-3deg);
+  opacity: 0.9;
+  font-weight: 700;
+}
+
+.footer-right {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.summary-table {
+  background: #f9fafb;
+  border: 1.5px solid #222;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 9px;
+  font-size: 10.5px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.summary-row:last-child { border-bottom: none; }
+
+.summary-row.total-highlight {
+  background-color: #ba8d23;
+  color: #000;
+  font-size: 11.5px;
+  font-weight: 800;
+  border-top: 1.5px solid #222;
+  border-bottom: 1.5px solid #222;
+}
+
+.summary-row.balance-highlight {
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   SCREEN 3: HISTORY
+   ========================================================================== */
+.history-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.history-search-box i {
+  color: var(--text-sub);
+}
+
+.history-search-box input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 12.5px;
+  outline: none;
+  width: 100%;
+}
+
+.history-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-card:active {
+  transform: scale(0.98);
+  border-color: var(--gold-primary);
+}
+
+.history-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.history-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.history-meta {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.history-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.history-amount {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.btn-history-del {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 12px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.btn-history-del:hover {
+  color: var(--danger-color);
+}
+
+/* ==========================================================================
+   BOTTOM FLOATING ACTION BAR & NAVIGATION BAR
+   ========================================================================== */
+.bottom-action-bar {
+  position: absolute;
+  bottom: 58px;
+  left: 0;
+  right: 0;
+  background: rgba(18, 23, 30, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border-color);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+}
+
+.bar-total-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.bar-total-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.bar-total-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.bar-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-action:active {
+  transform: scale(0.95);
+}
+
+.btn-whatsapp {
+  background: #1f8f4a;
+  color: #fff;
+}
+
+.btn-gold-solid {
+  background: var(--gold-gradient);
+  color: #0b0c0e;
+}
+
+/* Bottom Nav Bar */
+.app-nav-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 58px;
+  background: #10141b;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 50;
+  padding-bottom: var(--safe-bottom);
+}
+
+.nav-button {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.nav-button i {
+  font-size: 17px;
+}
+
+.nav-button span {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.nav-button.active {
+  color: var(--gold-light);
+}
+
+/* Toast */
+.toast {
+  position: absolute;
+  top: 66px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: #1e293b;
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  border-left: 3px solid var(--gold-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease-out;
+  z-index: 1000;
+  white-space: nowrap;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   STRICT 1-PAGE A4 PRINT CSS RULES
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html, body {
+    height: 100% !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .app-container,
+  .app-main {
+    display: block !important;
+    max-width: none !important;
+    height: 100% !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  #screen-editor,
+  #screen-history {
+    display: none !important;
+  }
+
+  #screen-preview {
+    display: block !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .preview-viewport {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    background: transparent !important;
+  }
+
+  .receipt-sheet {
+    transform: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 281mm !important; /* 297mm minus 2 x 8mm @page margins */
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .receipt-table td.cell-gold {
+    background-color: #ba8d23 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .header-banner-img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .summary-row.total-highlight {
+    background-color: #ba8d23 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

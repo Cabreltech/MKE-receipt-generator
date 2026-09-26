@@ -1,0 +1,11 @@
+# Temporary / test files
+*.pdf
+test_pdf.js
+test_runner.html
+scratch_test.js
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

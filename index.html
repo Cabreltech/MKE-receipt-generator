@@ -87,17 +87,22 @@
             </div>
           </div>
 
-          <!-- Line Items Card -->
+          <!-- Line Items / Prestations Card (Groupes & Devis) -->
           <div class="card">
             <div class="card-header">
               <span class="card-tag"><i class="fa-solid fa-list-check"></i> Articles & Prestations</span>
-              <button id="btn-add-item" class="btn-sm btn-gold">
-                <i class="fa-solid fa-plus"></i> Ajouter ligne
-              </button>
+              <div style="display: flex; gap: 8px;">
+                <button id="btn-add-group" class="btn-sm btn-outline-gold" type="button" title="Ajouter une section ou catégorie (ex: Devis Logistique, Sonorisation...)">
+                  <i class="fa-solid fa-folder-plus"></i> Nouvelle Section
+                </button>
+                <button id="btn-add-item" class="btn-sm btn-gold" type="button">
+                  <i class="fa-solid fa-plus"></i> Ajouter ligne
+                </button>
+              </div>
             </div>
 
-            <div id="items-list" class="items-editor-list">
-              <!-- Dynamically rendered rows -->
+            <div id="item-groups-container" class="item-groups-container">
+              <!-- Dynamically rendered groups and line items -->
             </div>
           </div>
 
@@ -322,6 +327,38 @@
 
   <!-- Toast Notification -->
   <div id="toast" class="toast no-print"></div>
+
+  <!-- MODAL: Coller texte WhatsApp -->
+  <div id="modal-paste-whatsapp" class="modal-backdrop no-print" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 18px;"></i>
+          <span>Importer un Devis WhatsApp</span>
+        </div>
+        <button id="btn-close-paste-modal" class="btn-circle btn-close-modal" type="button">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">
+          Copiez et collez directement le message WhatsApp reçu (avec les tirets, multiplications <code>300 × 250</code>, prix, etc.). Les prestations et le titre seront extraits automatiquement.
+        </p>
+        <textarea id="input-paste-whatsapp" class="paste-textarea" rows="8" placeholder="Exemple :
+DEVIS ESTIMATIF LOGISTIQUE POUR 300 INVITÉS
+• chaises habillées avec housses slim : 300 ×250= 75000 f
+• chapiteaux fermés : 8×20000 =160000 f
+• transport: 30000 f
+Total : 265000 f"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-paste" class="btn-sm btn-outline-sub" type="button">Annuler</button>
+        <button id="btn-confirm-parse-whatsapp" class="btn-sm btn-gold" type="button">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Analyser & Remplir
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

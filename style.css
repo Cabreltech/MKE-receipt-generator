@@ -287,6 +287,50 @@ input, select, textarea {
 }
 
 /* Items Editor List */
+.item-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.item-group-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px solid rgba(184, 139, 34, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-group-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.item-group-title-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--gold-light);
+  font-weight: 800;
+  font-size: 12.5px;
+  padding: 6px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.item-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .items-editor-list {
   display: flex;
   flex-direction: column;
@@ -613,6 +657,24 @@ input, select, textarea {
 .receipt-table td.cell-center { text-align: center; }
 .receipt-table td.cell-right { text-align: right; font-variant-numeric: tabular-nums; }
 .receipt-table td.cell-name { word-break: break-word; }
+
+/* Group Section Header in Table */
+.receipt-table tr.section-header-row td {
+  background: #f4ede0 !important;
+  color: #111827;
+  font-weight: 800;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 4px 8px;
+  border-top: 1.5px solid #222;
+  border-bottom: 1.5px solid #222;
+}
+
+.receipt-table tr.section-header-row td i {
+  color: #ba8d23;
+  margin-right: 4px;
+}
 
 /* ==========================================================================
    MENU PROPOSITION / PLATS SECTION (In Receipt Sheet & Form Editor)
@@ -1152,6 +1214,125 @@ input, select, textarea {
 .toast.show {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
+}
+
+/* ==========================================================================
+   MODAL: WHATSAPP IMPORT
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.2s ease-out;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-close-modal {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-sub);
+}
+
+.modal-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-hint {
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-hint code {
+  background: rgba(184, 139, 34, 0.15);
+  color: var(--gold-light);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.paste-textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  padding: 10px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 140px;
+  line-height: 1.45;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.paste-textarea:focus {
+  border-color: var(--gold-primary);
+  outline: none;
+}
+
+.modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-outline-sub {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: #94a3b8;
 }
 
 /* ==========================================================================

@@ -20,10 +20,16 @@ const state = {
   advance: 0,
   notes: '',
   zoom: 0.65,
-  items: [
-    { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 },
-    { id: 2, name: 'Location Couverts complets VIP', qty: 50, price: 1500 },
-    { id: 3, name: 'Décoration Salle & Scène des Mariés', qty: 1, price: 180000 }
+  itemGroups: [
+    {
+      id: 'grp-1',
+      title: 'Devis Logistique & Prestations',
+      items: [
+        { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 },
+        { id: 2, name: 'Location Couverts complets VIP', qty: 50, price: 1500 },
+        { id: 3, name: 'Décoration Salle & Scène des Mariés', qty: 1, price: 180000 }
+      ]
+    }
   ],
   menus: [
     {
@@ -66,6 +72,11 @@ const inputDiscount = document.getElementById('input-discount');
 const inputAdvance = document.getElementById('input-advance');
 const inputNotes = document.getElementById('input-notes');
 
+// Item Groups Editor DOM Elements
+const btnAddGroup = document.getElementById('btn-add-group');
+const btnAddItem = document.getElementById('btn-add-item');
+const itemGroupsContainer = document.getElementById('item-groups-container');
+
 // Menus Editor DOM Elements
 const btnAddMenuBlock = document.getElementById('btn-add-menu-block');
 const menusContainer = document.getElementById('menus-container');
@@ -73,9 +84,15 @@ const menusContainer = document.getElementById('menus-container');
 // Menus Preview DOM Elements
 const viewMenusContainer = document.getElementById('view-menus-container');
 
+// WhatsApp Paste Modal DOM Elements
+const modalPasteWhatsapp = document.getElementById('modal-paste-whatsapp');
+const btnClosePasteModal = document.getElementById('btn-close-paste-modal');
+const btnCancelPaste = document.getElementById('btn-cancel-paste');
+const btnConfirmParseWhatsapp = document.getElementById('btn-confirm-parse-whatsapp');
+const inputPasteWhatsapp = document.getElementById('input-paste-whatsapp');
+let activePasteTargetGroupId = null; // null means replace all or import to active group
+
 const displayReceiptNo = document.getElementById('display-receipt-no');
-const itemsList = document.getElementById('items-list');
-const btnAddItem = document.getElementById('btn-add-item');
 
 const btnNew = document.getElementById('btn-new');
 const btnSave = document.getElementById('btn-save');
@@ -212,88 +229,311 @@ function switchScreen(screenId) {
   }
 }
 
-// Render Line Items in Form Editor
+// Render Line Item Groups in Form Editor
 function renderItemsEditor() {
-  itemsList.innerHTML = '';
-  state.items.forEach((item, index) => {
-    const row = document.createElement('div');
-    row.className = 'item-editor-card';
-    const rowTotal = (item.qty || 0) * (item.price || 0);
+  if (!state.itemGroups || state.itemGroups.length === 0) {
+    state.itemGroups = [
+      { id: 'grp-' + Date.now(), title: '', items: [] }
+    ];
+  }
 
-    row.innerHTML = `
-      <div class="item-editor-row-1">
-        <span class="item-num">#${index + 1}</span>
-        <input type="text" class="item-desc" placeholder="Désignation de la prestation / matériel" value="${escapeHtml(item.name || '')}">
-        <button class="btn-remove-item" title="Supprimer"><i class="fa-solid fa-trash-can"></i></button>
+  itemGroupsContainer.innerHTML = '';
+  let globalItemIndex = 1;
+
+  state.itemGroups.forEach((group, groupIdx) => {
+    const groupCard = document.createElement('div');
+    groupCard.className = 'item-group-card';
+
+    groupCard.innerHTML = `
+      <div class="item-group-topbar">
+        <input type="text" class="item-group-title-input" placeholder="Titre de la section (ex: Devis Logistique, Sonorisation...)" value="${escapeHtml(group.title || '')}">
+        <div class="item-group-actions">
+          <button class="btn-sm btn-outline-gold btn-group-paste" type="button" title="Coller texte WhatsApp dans cette section">
+            <i class="fa-brands fa-whatsapp"></i> Coller
+          </button>
+          <button class="btn-sm btn-gold btn-group-add-line" type="button" title="Ajouter une ligne">
+            <i class="fa-solid fa-plus"></i> Ligne
+          </button>
+          ${state.itemGroups.length > 1 ? `
+            <button class="btn-remove-item btn-del-group" type="button" title="Supprimer la section">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        </div>
       </div>
-      <div class="item-editor-row-2">
-        <div class="form-group">
-          <label>Quantité</label>
-          <input type="number" class="item-qty" min="1" value="${item.qty || 1}">
-        </div>
-        <div class="form-group">
-          <label>Prix Unitaire</label>
-          <input type="number" class="item-price" min="0" step="500" value="${item.price || 0}">
-        </div>
-        <div class="form-group">
-          <label>Total Ligne</label>
-          <div class="item-total-preview">${formatFCFA(rowTotal)}</div>
-        </div>
+      <div class="items-editor-list">
+        <!-- Lines of this group -->
       </div>
     `;
 
-    // Bind item inputs
-    const descInput = row.querySelector('.item-desc');
-    const qtyInput = row.querySelector('.item-qty');
-    const priceInput = row.querySelector('.item-price');
-    const delBtn = row.querySelector('.btn-remove-item');
+    const titleInput = groupCard.querySelector('.item-group-title-input');
+    const btnGroupPaste = groupCard.querySelector('.btn-group-paste');
+    const btnGroupAddLine = groupCard.querySelector('.btn-group-add-line');
+    const btnDelGroup = groupCard.querySelector('.btn-del-group');
+    const itemsListEl = groupCard.querySelector('.items-editor-list');
 
-    descInput.addEventListener('input', (e) => {
-      item.name = e.target.value;
+    titleInput.addEventListener('input', (e) => {
+      group.title = e.target.value;
       updateReceiptCalculations();
     });
 
-    qtyInput.addEventListener('input', (e) => {
-      item.qty = Number(e.target.value) || 0;
-      row.querySelector('.item-total-preview').textContent = formatFCFA((item.qty || 0) * (item.price || 0));
-      updateReceiptCalculations();
+    btnGroupPaste.addEventListener('click', () => {
+      activePasteTargetGroupId = group.id;
+      inputPasteWhatsapp.value = '';
+      modalPasteWhatsapp.style.display = 'flex';
+      inputPasteWhatsapp.focus();
     });
 
-    priceInput.addEventListener('input', (e) => {
-      item.price = Number(e.target.value) || 0;
-      row.querySelector('.item-total-preview').textContent = formatFCFA((item.qty || 0) * (item.price || 0));
-      updateReceiptCalculations();
-    });
-
-    delBtn.addEventListener('click', () => {
-      if (state.items.length <= 1) {
-        showToast('Le reçu doit contenir au moins 1 ligne.');
-        return;
-      }
-      state.items = state.items.filter(it => it.id !== item.id);
+    btnGroupAddLine.addEventListener('click', () => {
+      group.items.push({
+        id: Date.now() + Math.random(),
+        name: 'Nouvelle prestation',
+        qty: 1,
+        price: 10000
+      });
       renderItemsEditor();
       updateReceiptCalculations();
+      showToast('Ligne ajoutée à la section !');
     });
 
-    itemsList.appendChild(row);
+    if (btnDelGroup) {
+      btnDelGroup.addEventListener('click', () => {
+        state.itemGroups = state.itemGroups.filter(g => g.id !== group.id);
+        renderItemsEditor();
+        updateReceiptCalculations();
+        showToast('Section supprimée.');
+      });
+    }
+
+    if (!group.items) group.items = [];
+
+    group.items.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'item-editor-card';
+      const rowTotal = (item.qty || 0) * (item.price || 0);
+
+      row.innerHTML = `
+        <div class="item-editor-row-1">
+          <span class="item-num">#${globalItemIndex++}</span>
+          <input type="text" class="item-desc" placeholder="Désignation de la prestation / matériel" value="${escapeHtml(item.name || '')}">
+          <button class="btn-remove-item" title="Supprimer"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <div class="item-editor-row-2">
+          <div class="form-group">
+            <label>Quantité</label>
+            <input type="number" class="item-qty" min="1" value="${item.qty || 1}">
+          </div>
+          <div class="form-group">
+            <label>Prix Unitaire</label>
+            <input type="number" class="item-price" min="0" step="500" value="${item.price || 0}">
+          </div>
+          <div class="form-group">
+            <label>Total Ligne</label>
+            <div class="item-total-preview">${formatFCFA(rowTotal)}</div>
+          </div>
+        </div>
+      `;
+
+      const descInput = row.querySelector('.item-desc');
+      const qtyInput = row.querySelector('.item-qty');
+      const priceInput = row.querySelector('.item-price');
+      const delBtn = row.querySelector('.btn-remove-item');
+
+      descInput.addEventListener('input', (e) => {
+        item.name = e.target.value;
+        updateReceiptCalculations();
+      });
+
+      qtyInput.addEventListener('input', (e) => {
+        item.qty = Number(e.target.value) || 0;
+        row.querySelector('.item-total-preview').textContent = formatFCFA((item.qty || 0) * (item.price || 0));
+        updateReceiptCalculations();
+      });
+
+      priceInput.addEventListener('input', (e) => {
+        item.price = Number(e.target.value) || 0;
+        row.querySelector('.item-total-preview').textContent = formatFCFA((item.qty || 0) * (item.price || 0));
+        updateReceiptCalculations();
+      });
+
+      delBtn.addEventListener('click', () => {
+        const totalItemsCount = state.itemGroups.reduce((acc, g) => acc + (g.items || []).length, 0);
+        if (totalItemsCount <= 1) {
+          showToast('Le devis/reçu doit contenir au moins 1 ligne.');
+          return;
+        }
+        group.items = group.items.filter(it => it.id !== item.id);
+        renderItemsEditor();
+        updateReceiptCalculations();
+      });
+
+      itemsListEl.appendChild(row);
+    });
+
+    itemGroupsContainer.appendChild(groupCard);
   });
 }
 
+function addNewItemGroup() {
+  if (!state.itemGroups) state.itemGroups = [];
+  const count = state.itemGroups.length + 1;
+  const newGroup = {
+    id: 'grp-' + Date.now(),
+    title: 'Section #' + count,
+    items: [
+      { id: Date.now() + 1, name: 'Nouvelle prestation', qty: 1, price: 10000 }
+    ]
+  };
+  state.itemGroups.push(newGroup);
+  renderItemsEditor();
+  updateReceiptCalculations();
+  showToast('Nouvelle section ajoutée !');
+}
+
 function addNewItem() {
-  if (state.items.length >= 14) {
-    showToast('Limite atteinte : maximum 14 lignes pour garantir 1 seule page A4.');
+  if (!state.itemGroups || state.itemGroups.length === 0) {
+    addNewItemGroup();
     return;
   }
-  const newItem = {
+  const lastGroup = state.itemGroups[state.itemGroups.length - 1];
+  lastGroup.items.push({
     id: Date.now(),
     name: 'Nouvelle prestation',
     qty: 1,
     price: 10000
-  };
-  state.items.push(newItem);
+  });
   renderItemsEditor();
   updateReceiptCalculations();
   showToast('Ligne ajoutée !');
+}
+
+/**
+ * Parses raw WhatsApp devis/quote text like:
+ * DEVIS ESTIMATIF LOGISTIQUE POUR 300 INVITÉS EN RÉCEPTION
+ * • chaises habillées avec housses slim : 300 ×250= 75000 f
+ * • chapiteaux fermés : 8×20000 =160000 f
+ * • transport: 30000 f
+ * Total : 668000 f
+ */
+function parseWhatsAppQuoteText(rawText, targetGroupId = null) {
+  if (!rawText || !rawText.trim()) return;
+
+  const lines = rawText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+
+  if (lines.length === 0) return;
+
+  const parsedItems = [];
+  let foundTitle = '';
+
+  for (let line of lines) {
+    // Ignore meta header/footer lines like "Forwarded", "Transféré", timestamps
+    if (/^(Forwarded|Transféré|\d{1,2}:\d{2}\s*(AM|PM)?)$/i.test(line)) {
+      continue;
+    }
+
+    // Ignore Grand Total lines
+    if (/^total\s*[:=]/i.test(line) || /^total\s+g[ée]n[ée]ral/i.test(line)) {
+      continue;
+    }
+
+    // Check if line is a header/title (no multiplication or prices, like DEVIS ESTIMATIF...)
+    if (!foundTitle && !line.startsWith('•') && !line.startsWith('-') && !/\d+\s*[x×*]\s*\d+/i.test(line) && !/:\s*\d+/i.test(line)) {
+      foundTitle = line;
+      continue;
+    }
+
+    // Strip leading bullets / hyphens / numbers
+    let cleanLine = line.replace(/^[•\-\*\d+\.\)]\s*/, '').trim();
+
+    // Pattern A: "Name : Qty x Price = Total" OR "Name = Qty x Price = Total"
+    const patternA = /^(.+?)[:=]\s*(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+[\d\s]*)(?:[fF]|frs?|fcfa)?\s*(?:=\s*(\d+[\d\s]*))?/i;
+    
+    // Pattern B: "Name : Price x Qty = Total"
+    const patternB = /^(.+?)[:=]\s*(\d+[\d\s]*)\s*(?:[fF]|frs?|fcfa)?\s*[x×*]\s*(\d+(?:[.,]\d+)?)(?:\s*=\s*(\d+[\d\s]*))?/i;
+
+    // Pattern C: "Name : FlatPrice" OR "Name = FlatPrice"
+    const patternC = /^(.+?)[:=]\s*(\d+[\d\s]*)\s*(?:[fF]|frs?|fcfa)?$/i;
+
+    let matchA = cleanLine.match(patternA);
+    let matchB = cleanLine.match(patternB);
+    let matchC = cleanLine.match(patternC);
+
+    if (matchA) {
+      const name = matchA[1].trim();
+      const qty = parseFloat(matchA[2].replace(',', '.')) || 1;
+      const price = parseInt(matchA[3].replace(/\s/g, ''), 10) || 0;
+      parsedItems.push({
+        id: Date.now() + Math.random(),
+        name: name,
+        qty: qty,
+        price: price
+      });
+    } else if (matchB) {
+      const name = matchB[1].trim();
+      const price = parseInt(matchB[2].replace(/\s/g, ''), 10) || 0;
+      const qty = parseFloat(matchB[3].replace(',', '.')) || 1;
+      parsedItems.push({
+        id: Date.now() + Math.random(),
+        name: name,
+        qty: qty,
+        price: price
+      });
+    } else if (matchC) {
+      const name = matchC[1].trim();
+      const price = parseInt(matchC[2].replace(/\s/g, ''), 10) || 0;
+      parsedItems.push({
+        id: Date.now() + Math.random(),
+        name: name,
+        qty: 1,
+        price: price
+      });
+    } else {
+      if (cleanLine.length > 2) {
+        parsedItems.push({
+          id: Date.now() + Math.random(),
+          name: cleanLine,
+          qty: 1,
+          price: 0
+        });
+      }
+    }
+  }
+
+  if (parsedItems.length === 0) {
+    showToast('Aucun article détecté dans le texte collé.');
+    return;
+  }
+
+  // Update client / event name if detected and empty
+  if (foundTitle && !state.clientName) {
+    state.clientName = foundTitle;
+    inputClientName.value = foundTitle;
+  }
+
+  // Target specific group if active, or create/update group
+  if (targetGroupId) {
+    const targetGrp = state.itemGroups.find(g => g.id === targetGroupId);
+    if (targetGrp) {
+      if (foundTitle && !targetGrp.title) targetGrp.title = foundTitle;
+      targetGrp.items = parsedItems;
+    }
+  } else {
+    // Replace all groups with a new parsed group
+    state.itemGroups = [
+      {
+        id: 'grp-' + Date.now(),
+        title: foundTitle || 'Devis Importé',
+        items: parsedItems
+      }
+    ];
+  }
+
+  renderItemsEditor();
+  updateReceiptCalculations();
+  showToast(`${parsedItems.length} prestations importées avec succès !`);
 }
 
 // Render Menu Sections in Form Editor
@@ -517,8 +757,16 @@ function updateReceiptCalculations() {
   state.advance = Number(inputAdvance.value) || 0;
   state.notes = inputNotes.value.trim();
 
-  // Computations
-  const totalGross = state.items.reduce((acc, it) => acc + ((it.qty || 0) * (it.price || 0)), 0);
+  // Computations across all item groups
+  let totalGross = 0;
+  let allItemsCount = 0;
+  (state.itemGroups || []).forEach(g => {
+    (g.items || []).forEach(it => {
+      totalGross += ((it.qty || 0) * (it.price || 0));
+      allItemsCount++;
+    });
+  });
+
   const totalNet = Math.max(0, totalGross - state.discount);
   const totalBalance = Math.max(0, totalNet - state.advance);
 
@@ -528,20 +776,41 @@ function updateReceiptCalculations() {
   viewClientName.textContent = state.clientName ? state.clientName + (state.clientCity ? ` (${state.clientCity})` : '') : '-';
   viewClientPhone.textContent = state.clientPhone || '-';
 
-  // Sync Table Rows (Dynamic rows only - strictly matches item count)
+  // Sync Table Rows (Renders category/section header when title exists)
   receiptTableBody.innerHTML = '';
-  state.items.forEach((item, idx) => {
-    const tr = document.createElement('tr');
-    const rowTotal = (item.qty || 0) * (item.price || 0);
+  let globalRowNumber = 1;
+  const groups = state.itemGroups || [];
+  const hasMultipleGroups = groups.length > 1;
 
-    tr.innerHTML = `
-      <td class="cell-center">${idx + 1}</td>
-      <td class="cell-gold cell-name">${escapeHtml(item.name || '-')}</td>
-      <td class="cell-center">${item.qty || 1}</td>
-      <td class="cell-gold cell-right">${formatFCFA(item.price || 0).replace(' FCFA', '')}</td>
-      <td class="cell-right">${formatFCFA(rowTotal).replace(' FCFA', '')}</td>
-    `;
-    receiptTableBody.appendChild(tr);
+  groups.forEach((group) => {
+    const groupItems = group.items || [];
+    if (groupItems.length === 0 && !group.title) return;
+
+    // If section title exists or multiple sections exist, render bold section header row
+    if (group.title && group.title.trim()) {
+      const headerTr = document.createElement('tr');
+      headerTr.className = 'section-header-row';
+      headerTr.innerHTML = `
+        <td colspan="5" class="cell-section-header">
+          <i class="fa-solid fa-layer-group"></i> ${escapeHtml(group.title.trim())}
+        </td>
+      `;
+      receiptTableBody.appendChild(headerTr);
+    }
+
+    groupItems.forEach((item) => {
+      const tr = document.createElement('tr');
+      const rowTotal = (item.qty || 0) * (item.price || 0);
+
+      tr.innerHTML = `
+        <td class="cell-center">${globalRowNumber++}</td>
+        <td class="cell-gold cell-name">${escapeHtml(item.name || '-')}</td>
+        <td class="cell-center">${item.qty || 1}</td>
+        <td class="cell-gold cell-right">${formatFCFA(item.price || 0).replace(' FCFA', '')}</td>
+        <td class="cell-right">${formatFCFA(rowTotal).replace(' FCFA', '')}</td>
+      `;
+      receiptTableBody.appendChild(tr);
+    });
   });
 
   // Sync Menus Section in Receipt Preview
@@ -713,7 +982,12 @@ async function shareViaWhatsApp() {
 // LocalStorage Persistence & History
 function saveCurrentReceipt() {
   const receipts = getSavedReceipts();
-  const totalGross = state.items.reduce((acc, it) => acc + ((it.qty || 0) * (it.price || 0)), 0);
+  let totalGross = 0;
+  (state.itemGroups || []).forEach(g => {
+    (g.items || []).forEach(it => {
+      totalGross += ((it.qty || 0) * (it.price || 0));
+    });
+  });
   const totalNet = Math.max(0, totalGross - state.discount);
 
   const receiptData = {
@@ -726,7 +1000,7 @@ function saveCurrentReceipt() {
     discount: state.discount,
     advance: state.advance,
     notes: state.notes,
-    items: JSON.parse(JSON.stringify(state.items)),
+    itemGroups: JSON.parse(JSON.stringify(state.itemGroups || [])),
     menus: JSON.parse(JSON.stringify(state.menus || [])),
     totalNet: totalNet,
     savedAt: new Date().toISOString()
@@ -809,11 +1083,21 @@ function loadReceipt(r) {
   inputDiscount.value = r.discount || 0;
   inputAdvance.value = r.advance || 0;
   inputNotes.value = r.notes || '';
-  state.items = JSON.parse(JSON.stringify(r.items || []));
+
+  if (r.itemGroups) {
+    state.itemGroups = JSON.parse(JSON.stringify(r.itemGroups));
+  } else if (r.items) {
+    // Backward compatibility for single items array
+    state.itemGroups = [
+      { id: 'grp-legacy', title: 'Prestations & Matériel', items: JSON.parse(JSON.stringify(r.items)) }
+    ];
+  } else {
+    state.itemGroups = [];
+  }
+
   if (r.menus) {
     state.menus = JSON.parse(JSON.stringify(r.menus));
   } else if (r.menu) {
-    // Backward compatibility for single menu records
     state.menus = [JSON.parse(JSON.stringify(r.menu))];
   } else {
     state.menus = [];
@@ -843,8 +1127,14 @@ function startNewReceipt() {
   inputDiscount.value = 0;
   inputAdvance.value = 0;
   inputNotes.value = '';
-  state.items = [
-    { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 }
+  state.itemGroups = [
+    {
+      id: 'grp-1',
+      title: 'Devis Logistique & Prestations',
+      items: [
+        { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 }
+      ]
+    }
   ];
   state.menus = [
     {
@@ -884,15 +1174,45 @@ function init() {
     el.addEventListener('input', updateReceiptCalculations);
   });
 
+  // Groups and Items Buttons
+  if (btnAddGroup) btnAddGroup.addEventListener('click', addNewItemGroup);
+  if (btnAddItem) btnAddItem.addEventListener('click', addNewItem);
+
   // Menus Add Button
   btnAddMenuBlock.addEventListener('click', addNewMenuBlock);
 
   // Action Buttons
-  btnAddItem.addEventListener('click', addNewItem);
   btnNew.addEventListener('click', startNewReceipt);
   btnSave.addEventListener('click', saveCurrentReceipt);
   btnDownloadPdf.addEventListener('click', downloadReceiptPdf);
   btnShareWhatsapp.addEventListener('click', shareViaWhatsApp);
+
+  // WhatsApp Paste Modal Events
+  if (modalPasteWhatsapp) {
+    const closeModal = () => {
+      modalPasteWhatsapp.style.display = 'none';
+      activePasteTargetGroupId = null;
+    };
+
+    if (btnClosePasteModal) btnClosePasteModal.addEventListener('click', closeModal);
+    if (btnCancelPaste) btnCancelPaste.addEventListener('click', closeModal);
+
+    modalPasteWhatsapp.addEventListener('click', (e) => {
+      if (e.target === modalPasteWhatsapp) closeModal();
+    });
+
+    if (btnConfirmParseWhatsapp) {
+      btnConfirmParseWhatsapp.addEventListener('click', () => {
+        const text = inputPasteWhatsapp.value;
+        if (!text || !text.trim()) {
+          showToast('Veuillez coller le texte du message WhatsApp.');
+          return;
+        }
+        parseWhatsAppQuoteText(text, activePasteTargetGroupId);
+        closeModal();
+      });
+    }
+  }
 
   const btnQuickPreview = document.getElementById('btn-quick-preview');
   if (btnQuickPreview) {

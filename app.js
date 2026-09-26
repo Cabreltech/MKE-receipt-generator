@@ -24,6 +24,35 @@ const state = {
     { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 },
     { id: 2, name: 'Location Couverts complets VIP', qty: 50, price: 1500 },
     { id: 3, name: 'Décoration Salle & Scène des Mariés', qty: 1, price: 180000 }
+  ],
+  menus: [
+    {
+      id: 'menu-1',
+      mainTitle: 'PROPOSITION MENU',
+      priceInfo: '8 500 FCFA / Assiette',
+      sections: [
+        {
+          id: 'sec-1',
+          title: 'Entrée',
+          itemsText: 'Salade composée\nŒufs durs, Sauce cocktail'
+        },
+        {
+          id: 'sec-2',
+          title: 'Plats chauds',
+          itemsText: 'Ndolè Royal\nÉmincé de bœuf aux oignons\nPoulet yassa\nFricassé de poisson\nPorc fumé sauté'
+        },
+        {
+          id: 'sec-3',
+          title: 'Complément',
+          itemsText: 'Igname blanche\nRiz créole\nMiondo\nPlantain frit'
+        },
+        {
+          id: 'sec-4',
+          title: 'Dessert',
+          itemsText: 'Cascade de fruits de saison'
+        }
+      ]
+    }
   ]
 };
 
@@ -36,6 +65,13 @@ const inputClientCity = document.getElementById('input-client-city');
 const inputDiscount = document.getElementById('input-discount');
 const inputAdvance = document.getElementById('input-advance');
 const inputNotes = document.getElementById('input-notes');
+
+// Menus Editor DOM Elements
+const btnAddMenuBlock = document.getElementById('btn-add-menu-block');
+const menusContainer = document.getElementById('menus-container');
+
+// Menus Preview DOM Elements
+const viewMenusContainer = document.getElementById('view-menus-container');
 
 const displayReceiptNo = document.getElementById('display-receipt-no');
 const itemsList = document.getElementById('items-list');
@@ -260,6 +296,214 @@ function addNewItem() {
   showToast('Ligne ajoutée !');
 }
 
+// Render Menu Sections in Form Editor
+// Render Menus in Form Editor (Supports multiple menus)
+function renderMenusEditor() {
+  if (!state.menus) {
+    state.menus = [];
+  }
+
+  menusContainer.innerHTML = '';
+
+  if (state.menus.length === 0) {
+    menusContainer.innerHTML = `
+      <div style="text-align: center; color: var(--text-sub); padding: 18px 10px; font-size: 11.5px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
+        <i class="fa-solid fa-utensils" style="font-size: 20px; margin-bottom: 6px; display: block; opacity: 0.6;"></i>
+        Aucun menu configuré. Cliquez sur <strong>"Ajouter un menu"</strong> pour ajouter une proposition (Entrée, Plats, etc.).
+      </div>
+    `;
+    return;
+  }
+
+  state.menus.forEach((menu, menuIndex) => {
+    const block = document.createElement('div');
+    block.className = 'menu-block-card';
+
+    block.innerHTML = `
+      <div class="menu-block-topbar">
+        <span class="menu-block-badge">
+          <i class="fa-solid fa-bowl-food"></i> Menu #${menuIndex + 1}
+        </span>
+        <button class="btn-remove-item btn-del-menu-block" title="Supprimer ce menu">
+          <i class="fa-solid fa-trash-can"></i> Supprimer
+        </button>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Titre Principal du Menu</label>
+          <input type="text" class="input-menu-title" placeholder="Ex: PROPOSITION MENU 1" value="${escapeHtml(menu.mainTitle || '')}">
+        </div>
+        <div class="form-group">
+          <label>Prix par assiette / plat (optionnel)</label>
+          <input type="text" class="input-menu-price" placeholder="Ex: 8 500 FCFA / assiette" value="${escapeHtml(menu.priceInfo || '')}">
+        </div>
+      </div>
+
+      <div class="menu-sections-editor-list">
+        <!-- Rendered categories of this menu -->
+      </div>
+
+      <button class="btn-sm btn-outline-gold btn-add-category" type="button" style="margin-top: 4px; justify-content: center;">
+        <i class="fa-solid fa-plus"></i> Ajouter une rubrique (Entrée, Plats chauds...)
+      </button>
+    `;
+
+    const titleInput = block.querySelector('.input-menu-title');
+    const priceInput = block.querySelector('.input-menu-price');
+    const delMenuBtn = block.querySelector('.btn-del-menu-block');
+    const addCatBtn = block.querySelector('.btn-add-category');
+    const sectionsListEl = block.querySelector('.menu-sections-editor-list');
+
+    titleInput.addEventListener('input', (e) => {
+      menu.mainTitle = e.target.value;
+      updateReceiptCalculations();
+    });
+
+    priceInput.addEventListener('input', (e) => {
+      menu.priceInfo = e.target.value;
+      updateReceiptCalculations();
+    });
+
+    delMenuBtn.addEventListener('click', () => {
+      state.menus = state.menus.filter(m => m.id !== menu.id);
+      renderMenusEditor();
+      updateReceiptCalculations();
+      showToast('Menu supprimé.');
+    });
+
+    addCatBtn.addEventListener('click', () => {
+      if (!menu.sections) menu.sections = [];
+      menu.sections.push({
+        id: 'sec-' + Date.now(),
+        title: 'Nouvelle Rubrique',
+        itemsText: 'Plat 1\nPlat 2'
+      });
+      renderMenusEditor();
+      updateReceiptCalculations();
+    });
+
+    // Render individual categories inside this menu
+    if (!menu.sections) menu.sections = [];
+    menu.sections.forEach(sec => {
+      const secCard = document.createElement('div');
+      secCard.className = 'menu-section-card';
+      secCard.innerHTML = `
+        <div class="menu-section-header">
+          <input type="text" class="menu-section-title-input" placeholder="Rubrique (Ex: Entrée, Plats chauds...)" value="${escapeHtml(sec.title || '')}">
+          <button class="btn-remove-item btn-del-cat" title="Supprimer rubrique"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <textarea class="menu-items-textarea" placeholder="Listez les plats (un par ligne)...">${escapeHtml(sec.itemsText || '')}</textarea>
+        <span class="menu-section-help"><i class="fa-solid fa-circle-info"></i> 1 ligne = 1 plat</span>
+      `;
+
+      const catTitleInput = secCard.querySelector('.menu-section-title-input');
+      const catTextarea = secCard.querySelector('.menu-items-textarea');
+      const delCatBtn = secCard.querySelector('.btn-del-cat');
+
+      catTitleInput.addEventListener('input', (e) => {
+        sec.title = e.target.value;
+        updateReceiptCalculations();
+      });
+
+      catTextarea.addEventListener('input', (e) => {
+        sec.itemsText = e.target.value;
+        updateReceiptCalculations();
+      });
+
+      delCatBtn.addEventListener('click', () => {
+        menu.sections = menu.sections.filter(s => s.id !== sec.id);
+        renderMenusEditor();
+        updateReceiptCalculations();
+      });
+
+      sectionsListEl.appendChild(secCard);
+    });
+
+    menusContainer.appendChild(block);
+  });
+}
+
+function addNewMenuBlock() {
+  if (!state.menus) state.menus = [];
+  const count = state.menus.length + 1;
+  const newMenu = {
+    id: 'menu-' + Date.now(),
+    mainTitle: 'PROPOSITION MENU ' + count,
+    priceInfo: '',
+    sections: [
+      { id: 'sec-' + Date.now() + '-1', title: 'Entrée', itemsText: 'Salade composée' },
+      { id: 'sec-' + Date.now() + '-2', title: 'Plats chauds', itemsText: 'Ndolè\nPoisson braisé' }
+    ]
+  };
+  state.menus.push(newMenu);
+  renderMenusEditor();
+  updateReceiptCalculations();
+  showToast('Nouveau menu ajouté !');
+}
+
+// Sync Menus in Receipt Sheet Preview
+function syncMenusPreview() {
+  if (!viewMenusContainer) return;
+  if (!state.menus || state.menus.length === 0) {
+    viewMenusContainer.style.display = 'none';
+    viewMenusContainer.innerHTML = '';
+    return;
+  }
+
+  // Filter menus that have at least title or sections
+  const activeMenus = state.menus.filter(m => (m.mainTitle && m.mainTitle.trim()) || (m.sections && m.sections.length > 0));
+
+  if (activeMenus.length === 0) {
+    viewMenusContainer.style.display = 'none';
+    viewMenusContainer.innerHTML = '';
+    return;
+  }
+
+  viewMenusContainer.style.display = 'flex';
+  viewMenusContainer.innerHTML = '';
+
+  activeMenus.forEach(menu => {
+    const menuEl = document.createElement('div');
+    menuEl.className = 'receipt-menu-section';
+
+    let headerHtml = `
+      <div class="menu-banner-header">
+        <span class="menu-main-title">${escapeHtml(menu.mainTitle || 'PROPOSITION MENU')}</span>
+        ${menu.priceInfo && menu.priceInfo.trim() ? `<span class="menu-price-badge">${escapeHtml(menu.priceInfo.trim())}</span>` : ''}
+      </div>
+    `;
+
+    let gridHtml = '<div class="menu-categories-grid">';
+    (menu.sections || []).forEach(sec => {
+      const rawLines = (sec.itemsText || '')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      if (!sec.title && rawLines.length === 0) return;
+
+      gridHtml += '<div class="menu-category-block">';
+      if (sec.title && sec.title.trim()) {
+        gridHtml += `<div class="menu-category-heading">${escapeHtml(sec.title.trim())}</div>`;
+      }
+      if (rawLines.length > 0) {
+        gridHtml += '<ul class="menu-dish-list">';
+        rawLines.forEach(line => {
+          const cleanLine = line.replace(/^[-•*]\s*/, '');
+          gridHtml += `<li class="menu-dish-item">${escapeHtml(cleanLine)}</li>`;
+        });
+        gridHtml += '</ul>';
+      }
+      gridHtml += '</div>';
+    });
+    gridHtml += '</div>';
+
+    menuEl.innerHTML = headerHtml + gridHtml;
+    viewMenusContainer.appendChild(menuEl);
+  });
+}
+
 // Update Calculations & Receipt Preview
 function updateReceiptCalculations() {
   // Sync state from inputs
@@ -299,6 +543,9 @@ function updateReceiptCalculations() {
     `;
     receiptTableBody.appendChild(tr);
   });
+
+  // Sync Menus Section in Receipt Preview
+  syncMenusPreview();
 
   // Sync Words Amount
   viewWordsAmount.textContent = numberToFrenchWords(totalNet);
@@ -480,6 +727,7 @@ function saveCurrentReceipt() {
     advance: state.advance,
     notes: state.notes,
     items: JSON.parse(JSON.stringify(state.items)),
+    menus: JSON.parse(JSON.stringify(state.menus || [])),
     totalNet: totalNet,
     savedAt: new Date().toISOString()
   };
@@ -562,8 +810,17 @@ function loadReceipt(r) {
   inputAdvance.value = r.advance || 0;
   inputNotes.value = r.notes || '';
   state.items = JSON.parse(JSON.stringify(r.items || []));
+  if (r.menus) {
+    state.menus = JSON.parse(JSON.stringify(r.menus));
+  } else if (r.menu) {
+    // Backward compatibility for single menu records
+    state.menus = [JSON.parse(JSON.stringify(r.menu))];
+  } else {
+    state.menus = [];
+  }
 
   renderItemsEditor();
+  renderMenusEditor();
   updateReceiptCalculations();
   switchScreen('screen-preview');
   showToast(`Reçu ${r.receiptNo} chargé !`);
@@ -587,9 +844,23 @@ function startNewReceipt() {
   inputAdvance.value = 0;
   inputNotes.value = '';
   state.items = [
-    { id: 1, name: 'Service Traiteur Buffet', qty: 1, price: 50000 }
+    { id: 1, name: 'Service Traiteur Buffet Prestige', qty: 50, price: 8500 }
+  ];
+  state.menus = [
+    {
+      id: 'menu-' + Date.now(),
+      mainTitle: 'PROPOSITION MENU 1',
+      priceInfo: '8 500 FCFA / Assiette',
+      sections: [
+        { id: 'sec-1', title: 'Entrée', itemsText: 'Salade composée\nŒufs durs, Sauce cocktail' },
+        { id: 'sec-2', title: 'Plats chauds', itemsText: 'Ndolè Royal\nÉmincé de bœuf aux oignons\nPoulet yassa\nFricassé de poisson\nPorc fumé sauté' },
+        { id: 'sec-3', title: 'Complément', itemsText: 'Igname blanche\nRiz créole\nMiondo\nPlantain frit' },
+        { id: 'sec-4', title: 'Dessert', itemsText: 'Cascade de fruits de saison' }
+      ]
+    }
   ];
   renderItemsEditor();
+  renderMenusEditor();
   updateReceiptCalculations();
   switchScreen('screen-editor');
   showToast('Nouveau reçu initialisé !');
@@ -612,6 +883,9 @@ function init() {
   [inputDate, inputPaymentMode, inputClientName, inputClientPhone, inputClientCity, inputDiscount, inputAdvance, inputNotes].forEach(el => {
     el.addEventListener('input', updateReceiptCalculations);
   });
+
+  // Menus Add Button
+  btnAddMenuBlock.addEventListener('click', addNewMenuBlock);
 
   // Action Buttons
   btnAddItem.addEventListener('click', addNewItem);
@@ -645,6 +919,7 @@ function init() {
   historySearch.addEventListener('input', renderHistoryList);
 
   renderItemsEditor();
+  renderMenusEditor();
   updateReceiptCalculations();
   autoFitSheet();
 }
